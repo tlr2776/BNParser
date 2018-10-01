@@ -33,7 +33,7 @@ public class BNCheck {
     private ArrayList<Job> jl;
     private ArrayList<Job> ql; //queueList
 
-    private FileWriter errorLog;
+    private FileWriter problemLog;
 
     public BNCheck() {
         jl = dashparser.DashParser.getJobList();
@@ -50,9 +50,9 @@ public class BNCheck {
         removeQueuedJobs();
 
         //finally
-        if (errorLog != null) {
+        if (problemLog != null) {
             try {
-                errorLog.close();
+                problemLog.close();
             } catch (IOException ex) {
                 Logger.getLogger(BNCheck.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -63,7 +63,7 @@ public class BNCheck {
         //this does not report an error, it just changes certain fields to use standard terms
         //TODO in the future I may make this throw an error if it finds a referral source that it can't standardize
         if (job.getReferredBy() == null) {
-            reportErrors(job, "noRefSource");
+            reportProblems(job, "noRefSource");
             job.setReferralType("Other");
         } else {
             if (job.getReferralType() != null) {
@@ -73,7 +73,7 @@ public class BNCheck {
                     job.setReferralType("Referral");
                 }
             } else {
-                reportErrors(job, "noRefType");
+                reportProblems(job, "noRefType");
                 job.setReferralType("Other");
             }
         }
@@ -81,9 +81,9 @@ public class BNCheck {
 
     private void checkLossTypes(Job job) {
         if (job.getLossType() == null) {
-            reportErrors(job, "lossType");
+            reportProblems(job, "lossType");
         } else if (job.getLossType().equals("Water") || job.getLossType().equals("Fire")) {
-            reportErrors(job, "secLoss");
+            reportProblems(job, "secLoss");
         }
     }
 
@@ -91,7 +91,7 @@ public class BNCheck {
         //if a job is in A/R status but has been paid in full:
         if (job.getJobStatus().equals("Accounts Receivable")) {
             if (job.getTotalInvoiced() == job.getTotalCollected()) {
-                reportErrors(job, "AR");
+                reportProblems(job, "AR");
             }
         }
     }
@@ -99,7 +99,7 @@ public class BNCheck {
     private void checkCategory(Job job) {
         //if a job does not have a category (commercial v residential) set:
         if (job.getLossCat() == null) {
-            reportErrors(job, "lossCat");
+            reportProblems(job, "lossCat");
         }
 
     }
@@ -166,32 +166,32 @@ public class BNCheck {
      * @param job The job in which the error was found.
      * @param type The String telling the method what the error was.
      */
-    private void reportErrors(Job job, String type) {
+    private void reportProblems(Job job, String type) {
         String jobID = job.getJobNumber();
 
         try {
-            if (errorLog == null) {
-                errorLog = new FileWriter("errorLog.txt");
+            if (problemLog == null) {
+                problemLog = new FileWriter("problemLog.txt");
             }
 
             switch (type) {
                 case "AR":
-                    errorLog.append(jobID + " can be closed.\n");
+                    problemLog.append(jobID + " can be closed.\n");
                     break;
                 case "noRefSource":
-                    errorLog.append(jobID + " has no referral source.\n");
+                    problemLog.append(jobID + " has no referral source.\n");
                     break;
                 case "noRefType":
-                    errorLog.append(jobID + " has a referral source with no referral type assigned.\n");
+                    problemLog.append(jobID + " has a referral source with no referral type assigned.\n");
                     break;
                 case "lossCat":
-                    errorLog.append(jobID + " does not have a category set.\n");
+                    problemLog.append(jobID + " does not have a category set.\n");
                     break;
                 case "secLoss":
-                    errorLog.append(jobID + " is missing a secondary loss type.\n");
+                    problemLog.append(jobID + " is missing a secondary loss type.\n");
                     break;
                 case "lossType":
-                    errorLog.append(jobID + " does not have a loss type set.\n");
+                    problemLog.append(jobID + " does not have a loss type set.\n");
                     break;
                 default:
                     throw new AssertionError();
