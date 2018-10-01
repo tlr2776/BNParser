@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import dashparser.Job;
+
 /**
  * The class that iterates over the parsed data and looks for missing or invalid
  * entries. Examples:
@@ -34,7 +36,7 @@ public class BNCheck {
     private FileWriter errorLog;
 
     public BNCheck() {
-        jl = Parser.getJobList();
+        jl = dashparser.DashParser.getJobList();
         ql = new ArrayList<>();
 
         for (Job job : jl) {
